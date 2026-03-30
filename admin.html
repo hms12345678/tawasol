@@ -3,92 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Admin Dashboard | Eng Hassan Sobeh</title>
+    <title>Eng Hassan Dashboard | Mobile</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root { --bg: #0b0f1a; --card: #1e293b; --main: #6366f1; --danger: #f43f5e; --online: #10b981; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: 'Cairo', sans-serif; background: var(--bg); color: white; margin: 0; height: 100dvh; display: flex; overflow: hidden; }
-
-        /* القائمة الجانبية للموبايل */
-        .sidebar { 
-            width: 280px; background: var(--card); border-left: 1px solid #334155; 
-            display: flex; flex-direction: column; transition: 0.3s; 
-            position: absolute; right: -280px; height: 100%; z-index: 100;
-        }
-        .sidebar.open { right: 0; box-shadow: -5px 0 20px rgba(0,0,0,0.5); }
-        .sidebar-header { padding: 20px; background: #0f172a; border-bottom: 1px solid #334155; text-align: center; }
-
-        /* منطقة المحتوى الأساسية */
-        .main { flex-grow: 1; display: flex; flex-direction: column; width: 100%; transition: 0.3s; }
-        .header { padding: 12px 15px; background: #1e293b; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; }
         
-        .menu-toggle { background: var(--main); border: none; color: white; padding: 8px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-
-        .room-list { flex-grow: 1; overflow-y: auto; padding: 15px; }
-        .room-item { 
-            background: #0f172a; padding: 15px; border-radius: 12px; margin-bottom: 12px; 
-            display: flex; align-items: center; justify-content: space-between; border: 1px solid transparent;
-        }
-        .room-item.active { border-color: var(--main); background: rgba(99, 102, 241, 0.1); }
+        .sidebar { width: 280px; background: var(--card); transition: 0.3s; position: absolute; right: -280px; height: 100%; z-index: 100; border-left: 1px solid #334155; }
+        .sidebar.open { right: 0; }
         
-        .dot { width: 12px; height: 12px; background: #475569; border-radius: 50%; margin-left: 10px; }
-        .dot.online { background: var(--online); box-shadow: 0 0 10px var(--online); animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+        .main { flex-grow: 1; display: flex; flex-direction: column; width: 100%; }
+        .header { padding: 12px; background: #1e293b; display: flex; justify-content: space-between; align-items: center; }
+        
+        .warn-bar { padding: 10px; background: #0f172a; border-bottom: 1px solid #334155; display: flex; gap: 5px; }
+        .warn-bar input { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #444; background: #000; color: white; }
+        .warn-bar button { background: var(--danger); border: none; color: white; padding: 10px; border-radius: 8px; font-weight: bold; }
 
-        .message-feed { flex-grow: 1; overflow-y: auto; padding: 15px; background: #020617; display: flex; flex-direction: column; gap: 10px; }
-        .msg-card { 
-            background: var(--card); padding: 12px; border-radius: 12px; 
-            display: flex; justify-content: space-between; align-items: center; border: 1px solid #334155;
-            animation: slideIn 0.3s ease;
-        }
-        @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+        .room-item { background: #0f172a; padding: 15px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid transparent; }
+        .room-item.active { border-color: var(--main); }
+        .dot { width: 12px; height: 12px; background: #475569; border-radius: 50%; margin-left: 8px; }
+        .dot.online { background: var(--online); box-shadow: 0 0 10px var(--online); }
 
-        .btn-del { background: var(--danger); border: none; color: white; padding: 8px; border-radius: 8px; font-size: 14px; }
-
-        /* شاشة القفل */
-        #lock { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .lock-box { background: var(--card); padding: 30px; border-radius: 25px; text-align: center; width: 100%; max-width: 320px; }
-        input { width: 100%; padding: 15px; margin: 15px 0; border-radius: 12px; border: 1px solid #334155; background: #0b0f1a; color: white; text-align: center; font-size: 18px; }
-
-        /* وضع اللابتوب */
-        @media (min-width: 768px) {
-            .sidebar { position: relative; right: 0; }
-            .menu-toggle { display: none; }
-        }
+        .message-feed { flex-grow: 1; overflow-y: auto; padding: 15px; background: #020617; display: flex; flex-direction: column; gap: 8px; }
+        .msg-card { background: var(--card); padding: 10px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #334155; }
+        
+        #lock { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+        @media (min-width: 768px) { .sidebar { position: relative; right: 0; } .menu-btn { display: none; } }
     </style>
 </head>
 <body>
 
     <div id="lock">
-        <div class="lock-box">
-            <h2 style="color:var(--main); margin:0;">Eng/Hassan</h2>
-            <p style="font-size:12px; opacity:0.6;">لوحة تحكم الموبايل</p>
-            <input type="password" id="p" placeholder="رمز الدخول">
-            <button onclick="unlock()" style="width:100%; padding:15px; background:var(--main); border:none; color:white; border-radius:12px; font-weight:bold;">دخول</button>
+        <div style="background:var(--card); padding:30px; border-radius:25px; text-align:center;">
+            <h3 style="color:var(--main)">Eng/Hassan</h3>
+            <input type="password" id="pass" placeholder="رمز الدخول" style="width:100%; padding:12px; margin:15px 0; border-radius:10px; border:none; text-align:center;">
+            <button onclick="unlock()" style="width:100%; padding:12px; background:var(--main); border:none; color:white; border-radius:10px; font-weight:bold;">دخول</button>
         </div>
     </div>
 
     <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <h3 style="margin:0;">الغرف (<span id="rCount">0</span>)</h3>
-            <button onclick="toggleMenu()" style="margin-top:10px; background:none; border:1px solid #444; color:white; padding:5px; border-radius:5px; font-size:10px;">إغلاق القائمة ×</button>
-        </div>
-        <div class="room-list" id="rList"></div>
+        <div style="padding:20px; text-align:center; border-bottom:1px solid #334155;">قائمة الغرف</div>
+        <div id="rList" style="padding:15px; overflow-y:auto; height: 80%;"></div>
     </div>
 
     <div class="main">
         <div class="header">
-            <button class="menu-toggle" onclick="toggleMenu()">☰ الغرف</button>
-            <div id="curRoom" style="font-weight:bold; font-size:14px; color:var(--main);">اختر غرفة</div>
-            <div style="font-size:10px; opacity:0.5;">v2.1 Mobile</div>
+            <button class="menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')" style="background:var(--main); border:none; color:white; padding:8px 15px; border-radius:8px;">☰</button>
+            <div id="curR" style="font-weight:bold; color:var(--main);">اختر غرفة</div>
+            <div style="font-size:10px;">Hassan Dashboard</div>
         </div>
+        
+        <div class="warn-bar" id="warnBar" style="display:none">
+            <input type="text" id="warnMsg" placeholder="اكتب تحذير للمستخدمين...">
+            <button onclick="sendWarn()">إرسال تحذير ⚠️</button>
+        </div>
+
         <div class="message-feed" id="mFeed"></div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, onValue, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, onValue, remove, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDqaoLsPBAY9XJ5_z9x8rGFLK3EdCfE2LQ",
@@ -102,75 +77,65 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        let currentRoom = "";
+        let selectedR = "";
 
         window.unlock = () => {
-            if(document.getElementById('p').value === "Hassan2026") {
+            if(document.getElementById('pass').value === "Hassan2026") {
                 document.getElementById('lock').style.display = 'none';
                 loadRooms();
-            } else alert("الباسوورد خطأ!");
-        };
-
-        window.toggleMenu = () => {
-            document.getElementById('sidebar').classList.toggle('open');
+            } else alert("خطأ!");
         };
 
         function loadRooms() {
-            onValue(ref(db, 'config'), (snap) => {
+            onValue(ref(db, 'config'), snap => {
                 const list = document.getElementById('rList');
                 list.innerHTML = "";
-                let count = 0;
                 snap.forEach(room => {
-                    count++;
                     const name = room.key;
                     const div = document.createElement('div');
-                    div.className = `room-item ${currentRoom === name ? 'active' : ''}`;
-                    div.innerHTML = `
-                        <div style="display:flex; align-items:center">
-                            <span class="dot" id="dot-${name}"></span>
-                            <b>${name}</b>
-                        </div>
-                        <span onclick="delRoom('${name}')" style="color:var(--danger); font-size:18px;">🗑️</span>
-                    `;
-                    div.onclick = (e) => { if(e.target.tagName !== 'SPAN') { selectRoom(name); toggleMenu(); } };
+                    div.className = `room-item ${selectedR === name ? 'active' : ''}`;
+                    div.innerHTML = `<div><span class="dot" id="dot-${name}"></span>${name}</div> <span onclick="delR('${name}')">🗑️</span>`;
+                    div.onclick = (e) => { if(e.target.tagName !== 'SPAN') select(name); };
                     list.appendChild(div);
-                    monitorOnline(name);
+                    monitor(name);
                 });
-                document.getElementById('rCount').textContent = count;
             });
         }
 
-        function monitorOnline(name) {
-            onValue(ref(db, `online/${name}`), (snap) => {
+        function monitor(name) {
+            onValue(ref(db, `online/${name}`), snap => {
                 const dot = document.getElementById(`dot-${name}`);
                 if(dot) snap.exists() ? dot.classList.add('online') : dot.classList.remove('online');
             });
         }
 
-        function selectRoom(name) {
-            currentRoom = name;
-            document.getElementById('curRoom').textContent = name;
-            onValue(ref(db, `msgs/${name}`), (snap) => {
+        function select(name) {
+            selectedR = name;
+            document.getElementById('curR').textContent = name;
+            document.getElementById('warnBar').style.display = 'flex';
+            onValue(ref(db, `msgs/${name}`), snap => {
                 const feed = document.getElementById('mFeed');
                 feed.innerHTML = "";
                 snap.forEach(mSnap => {
                     const m = mSnap.val();
                     const card = document.createElement('div');
                     card.className = "msg-card";
-                    card.innerHTML = `
-                        <div style="flex:1">
-                            <small style="color:var(--main); display:block">${m.user || 'System'}</small>
-                            <span>${m.text || (m.type === 'image' ? '🖼️ صورة' : '🎤 ريكورد')}</span>
-                        </div>
-                        <button class="btn-del" onclick="delMsg('${name}','${mSnap.key}')">حذف</button>
-                    `;
+                    card.innerHTML = `<div><small style="color:var(--main)">${m.user}</small><br>${m.text}</div><button onclick="delM('${name}','${mSnap.key}')" style="background:var(--danger); border:none; color:white; padding:5px; border-radius:5px;">حذف</button>`;
                     feed.prepend(card);
                 });
             });
         }
 
-        window.delMsg = (r, id) => { if(confirm("حذف الرسالة؟")) remove(ref(db, `msgs/${r}/${id}`)); };
-        window.delRoom = (r) => { if(confirm(`حذف غرفة ${r} نهائياً؟`)) { remove(ref(db, `msgs/${r}`)); remove(ref(db, `config/${r}`)); remove(ref(db, `online/${r}`)); }};
+        window.sendWarn = () => {
+            const msg = document.getElementById('warnMsg');
+            if(!selectedR || !msg.value.trim()) return;
+            push(ref(db, `msgs/${selectedR}`), { user: "ADMIN", text: msg.value, type: "warning" });
+            msg.value = "";
+            alert("تم إرسال التحذير!");
+        };
+
+        window.delM = (r, id) => remove(ref(db, `msgs/${r}/${id}`));
+        window.delR = (r) => { if(confirm("حذف الغرفة؟")) { remove(ref(db, `msgs/${r}`)); remove(ref(db, `config/${r}`)); remove(ref(db, `online/${r}`)); } };
     </script>
 </body>
 </html>
