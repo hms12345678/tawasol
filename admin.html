@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eng Hassan | Admin Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #0f172a; --panel: #1e293b; --main: #6366f1; --danger: #ef4444; --online: #22c55e; }
+        body { font-family: 'Cairo', sans-serif; background: var(--bg); color: white; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        
+        .sidebar { width: 300px; background: var(--panel); border-left: 1px solid #334155; display: flex; flex-direction: column; }
+        .sidebar-header { padding: 20px; background: #111827; border-bottom: 1px solid #334155; text-align: center; }
+        .room-list { flex-grow: 1; overflow-y: auto; padding: 10px; }
+        
+        .room-item { background: #0f172a; padding: 15px; border-radius: 12px; margin-bottom: 10px; cursor: pointer; border: 1px solid transparent; position: relative; transition: 0.3s; }
+        .room-item:hover { border-color: var(--main); }
+        .room-item.active { background: var(--main); box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3); }
+        
+        .status-dot { width: 12px; height: 12px; background: #4b5563; border-radius: 50%; display: inline-block; margin-left: 10px; }
+        .status-dot.online { background: var(--online); box-shadow: 0 0 10px var(--online); animation: blink 2s infinite; }
+        @keyframes blink { 50% { opacity: 0.5; } }
+
+        .delete-room { position: absolute; left: 10px; top: 15px; color: var(--danger); cursor: pointer; opacity: 0.6; }
+        .delete-room:hover { opacity: 1; }
+
+        .main-content { flex-grow: 1; display: flex; flex-direction: column; }
+        .main-header { padding: 15px 25px; background: #111827; display: flex; justify-content: space-between; border-bottom: 1px solid #334155; }
+        .message-feed { flex-grow: 1; padding: 20px; overflow-y: auto; background: #020617; display: flex; flex-direction: column; gap: 8px; }
+        
+        .admin-msg { background: var(--panel); padding: 10px 15px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #334155; font-size: 14px; }
+        .btn-del-msg { background: var(--danger); border: none; color: white; padding: 4px 8px; border-radius: 6px; cursor: pointer; font-size: 11px; }
+
+        #lock { position: fixed; inset: 0; background: var(--bg); z-index: 999; display: flex; align-items: center; justify-content: center; }
+    </style>
+</head>
+<body>
+
+    <div id="lock">
+        <div style="background:var(--panel); padding:30px; border-radius:20px; text-align:center; width:320px;">
+            <h3 style="color:var(--main)">Eng/Hassan Sobeh</h3>
+            <input type="password" id="p" placeholder="رمز الدخول" style="width:100%; padding:12px; margin:15px 0; border-radius:10px; border:none; outline:none;">
+            <button onclick="unlock()" style="width:100%; padding:12px; background:var(--main); color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">دخول اللوحة</button>
+        </div>
+    </div>
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h3 style="margin:0; font-size:18px;">الغرف النشطة (<span id="rCount">0</span>)</h3>
+        </div>
+        <div class="room-list" id="rList"></div>
+    </div>
+
+    <div class="main-content">
+        <div class="main-header">
+            <h4 id="curRoom">اختر غرفة لمراقبة الرسايل</h4>
+            <div style="font-size:12px; opacity:0.6;">Admin Dashboard v2.0</div>
+        </div>
+        <div class="message-feed" id="mFeed"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, onValue, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDqaoLsPBAY9XJ5_z9x8rGFLK3EdCfE2LQ",
+            authDomain: "tawasol-84fcb.firebaseapp.com",
+            databaseURL: "https://tawasol-84fcb-default-rtdb.firebaseio.com",
+            projectId: "tawasol-84fcb",
+            storageBucket: "tawasol-84fcb.appspot.com",
+            messagingSenderId: "170212696274",
+            appId: "1:170212696274:web:c582dabcfead1c58a24d0b"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        let activeR = "";
+
+        window.unlock = () => {
+            if(document.getElementById('p').value === "Hassan2026") {
+                document.getElementById('lock').style.display = 'none';
+                loadDashboard();
+            } else alert("الباسوورد خطأ يا هندسة!");
+        };
+
+        function loadDashboard() {
+            onValue(ref(db, 'config'), (snap) => {
+                const list = document.getElementById('rList');
+                list.innerHTML = "";
+                let count = 0;
+                snap.forEach(room => {
+                    count++;
+                    const name = room.key;
+                    const div = document.createElement('div');
+                    div.className = `room-item ${activeR === name ? 'active' : ''}`;
+                    div.innerHTML = `
+                        <span class="status-dot" id="dot-${name}"></span>
+                        <span>${name}</span>
+                        <span class="delete-room" onclick="delRoom('${name}')">🗑️</span>
+                    `;
+                    div.onclick = (e) => { if(e.target.className !== 'delete-room') select(name); };
+                    list.appendChild(div);
+                    monitorStatus(name);
+                });
+                document.getElementById('rCount').textContent = count;
+            });
+        }
+
+        function monitorStatus(name) {
+            onValue(ref(db, `online/${name}`), (snap) => {
+                const dot = document.getElementById(`dot-${name}`);
+                if(dot) snap.exists() ? dot.classList.add('online') : dot.classList.remove('online');
+            });
+        }
+
+        window.select = (name) => {
+            activeR = name;
+            document.getElementById('curRoom').textContent = "مراقبة غرفة: " + name;
+            onValue(ref(db, `msgs/${name}`), (snap) => {
+                const feed = document.getElementById('mFeed');
+                feed.innerHTML = "";
+                snap.forEach(mSnap => {
+                    const m = mSnap.val();
+                    const div = document.createElement('div');
+                    div.className = "admin-msg";
+                    div.innerHTML = `
+                        <div><b>${m.user || 'System'}:</b> ${m.text || '[ميديا]'}</div>
+                        <button class="btn-del-msg" onclick="delMsg('${name}','${mSnap.key}')">حذف</button>
+                    `;
+                    feed.prepend(div);
+                });
+            });
+        };
+
+        window.delMsg = (r, id) => { if(confirm("حذف الرسالة؟")) remove(ref(db, `msgs/${r}/${id}`)); };
+        window.delRoom = (r) => { if(confirm(`مسح غرفة ${r} نهائياً؟`)) { remove(ref(db, `msgs/${r}`)); remove(ref(db, `config/${r}`)); remove(ref(db, `online/${r}`)); }};
+    </script>
+</body>
+</html>
